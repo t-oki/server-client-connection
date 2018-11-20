@@ -6,34 +6,45 @@ import (
 	"net"
 )
 
+const addr = "127.0.0.1:8080"
+
 func main() {
-	listener, err := net.Listen("tcp", "127.0.0.1:8080")
+	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer listener.Close()
-	log.Println("Listening on 127.0.0.1:8080..")
+	log.Printf("Listening on %s...", addr)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Connection Error: %s", err))
+			log.Printf("Connection Error: %s", err)
+			continue
 		}
 		defer conn.Close()
 
-		go func() {
-			remoteAddr := conn.RemoteAddr().String()
-			log.Println(fmt.Sprintf("Client connected from %s", remoteAddr))
+		go handleConnection(conn)
+	}
+}
 
-			buf := make([]byte, 1024)
-			n, err := conn.Read(buf)
-			if err != nil {
-				log.Fatal("Failed to read from connection")
-			}
-			log.Println(fmt.Sprintf("%s", buf[:n]))
+func handleConnection(conn net.Conn) {
+	remoteAddr := conn.RemoteAddr().String()
+	log.Printf("Client connected from %s", remoteAddr)
 
-			res := fmt.Sprintf("Hello, %s", remoteAddr)
-			conn.Write([]byte(res))
-		}()
+	for {
+		buf := make([]byte, 1024)
+		n, err := conn.Read(buf)
+		if err != nil && err.Error() == "EOF" {
+			log.Printf("Client: %s disconnected", remoteAddr)
+			break
+		} else if err != nil {
+			log.Println(err)
+			log.Fatal("Failed to read from connection")
+		}
+		log.Printf("%s: %s", remoteAddr, buf[:n])
+
+		res := fmt.Sprintf("Your word:  %s", buf[:n])
+		conn.Write([]byte(res))
 	}
 }
