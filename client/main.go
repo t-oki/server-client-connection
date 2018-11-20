@@ -1,22 +1,39 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"log"
 	"net"
+	"os"
 )
 
+const addr = "127.0.0.1:8080"
+
 func main() {
-	conn, err := net.Dial("tcp", "127.0.0.1:8080")
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatal("Failed to connect to 127.0.0.1:8080")
+		fmt.Printf("Failed to connect %s for reason: %s \n", addr, err.Error())
+		os.Exit(1)
 	}
 	defer conn.Close()
 
-	msg := fmt.Sprintf("Hello, %s", conn.RemoteAddr())
-	conn.Write([]byte(msg))
+	for {
+		fmt.Print("> ")
+		reader := bufio.NewReader(os.Stdin)
+		t, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Printf("Failed to read from input: %s", err.Error())
+			break
+		}
+		fmt.Printf("Started Connection with %s \n", addr)
+		conn.Write([]byte(t))
 
-	res := make([]byte, 1024)
-	n, _ := conn.Read(res)
-	log.Println(string(res[:n]))
+		res := make([]byte, 1024)
+		n, err := conn.Read(res)
+		if err != nil {
+			fmt.Printf("Failed to read data returned from server: %s", err.Error())
+			break
+		}
+		fmt.Print(string(res[:n]))
+	}
 }
