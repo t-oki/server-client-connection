@@ -1,2 +1,3 @@
 # server-client-connection
-goでのtcp接続を試す
+goでのtcpとudp接続を試した
+tcp接続の方はstream毎出力する
