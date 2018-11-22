@@ -10,11 +10,6 @@ import (
 const addr = "127.0.0.1:8080"
 const udpaddr = "127.0.0.1:8081"
 
-func main() {
-	go dialTCP()
-	dialUDP()
-}
-
 func dialTCP() {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
@@ -67,4 +62,9 @@ func dialUDP() {
 		}
 		fmt.Println(string(res[:n]))
 	}
+}
+
+func main() {
+	go dialTCP()
+	dialUDP()
 }
